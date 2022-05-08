@@ -1,10 +1,17 @@
-with open('./text_files/the_great_gatsby.txt', 'r', encoding="utf8") as f:
-    gatsby = f.read()
+import sys
 
-tests = gatsby.split("\n\n")
-paragraph = []
+def parse_text(text_file):
+    with open(f'./text_files/{text_file}', 'r', encoding="utf8") as f:
+        gatsby = f.read()
 
-for i in range(len(tests)):
-    paragraph.append(tests[i].replace("\n", " "))
+    tests = gatsby.split("\n\n")
+    paragraphs = []
 
-print(paragraph[1:10])
+    for paragraph in tests:
+        if paragraph != "------------------------------------------------------------------------":
+            paragraphs.append(paragraph.replace("\n", " "))
+
+    print("Number of paragraphs in this book: ", len(paragraphs))
+
+if __name__ == '__main__':
+    parse_text(sys.argv[1])
