@@ -45,6 +45,7 @@ def create_table(book_name):
         try:
             c = conn.cursor()
             c.execute(sql_create_table)
+            return True
         except Error as e:
             print(e)
     else:
@@ -77,7 +78,7 @@ def create_data(book_name):
     return paragraphs
 
 @task
-def insert_data(paragraphs, book_name):
+def insert_data(table_exists, paragraphs, book_name):
     """
     Insert new values into the weather_table.
     Parameters
@@ -89,65 +90,67 @@ def insert_data(paragraphs, book_name):
     -------
     None
     """
-    sql = f'''
-        INSERT INTO {book_name}_table (paragraph, paragraph_length, happy, angry, surprise, sad, fear, dominant_emotion, log_runtime)
-        VALUES(?,?,?,?,?,?,?,?,?)
-        '''
+    if table_exists:
+        file_handler = logging.FileHandler(f'logs/{book_name}.log')
+        file_logger.addHandler(file_handler)
 
-    conn = None
-    try:
-        conn = sqlite3.connect(database)
-    except Error as e:
-        print(e)
+        sql = f'''
+            INSERT INTO {book_name}_table (paragraph, paragraph_length, happy, angry, surprise, sad, fear, dominant_emotion, log_runtime)
+            VALUES(?,?,?,?,?,?,?,?,?)
+            '''
 
-    for paragraph in paragraphs:
-        start_time = perf_counter()
-
-        paragraphs_to_emotions = te.get_emotion(paragraph)
-        dominant_emotion = ""
-
-        for val in paragraphs_to_emotions.values():
-            if val >= 0.5:
-                dominant_emotion = [k for k, v in paragraphs_to_emotions.items() if v == val and val >= 0.5]
-
-        emotion_results = (paragraph,
-                        len(paragraph),
-                        paragraphs_to_emotions["Happy"],
-                        paragraphs_to_emotions["Angry"],
-                        paragraphs_to_emotions["Surprise"],
-                        paragraphs_to_emotions["Sad"],
-                        paragraphs_to_emotions["Fear"],
-                        ", ".join(dominant_emotion),
-                        0)
-
-        cur = conn.cursor()
-        cur.execute(sql, emotion_results)
-        row_id = cur.lastrowid
-        conn.commit()
-
-        end_time = perf_counter()
-        total_time = end_time - start_time
+        conn = None
         try:
-            file_logger.info('Paragraph Id: %i, Paragraph Length: %i, Execution Time: %f', row_id, len(paragraph), total_time)
+            conn = sqlite3.connect(database)
         except Error as e:
-            file_logger.error(row_id, e)
+            print(e)
 
-        update_sql = f'''
-          UPDATE {book_name}_table
-          SET log_runtime = ?
-          WHERE id = ?
-          '''
+        for paragraph in paragraphs:
+            start_time = perf_counter()
 
-        cur.execute(update_sql, (total_time, row_id))
+            paragraphs_to_emotions = te.get_emotion(paragraph)
+            dominant_emotion = ""
+
+            for val in paragraphs_to_emotions.values():
+                if val >= 0.5:
+                    dominant_emotion = [k for k, v in paragraphs_to_emotions.items() if v == val and val >= 0.5]
+
+            emotion_results = (paragraph,
+                            len(paragraph),
+                            paragraphs_to_emotions["Happy"],
+                            paragraphs_to_emotions["Angry"],
+                            paragraphs_to_emotions["Surprise"],
+                            paragraphs_to_emotions["Sad"],
+                            paragraphs_to_emotions["Fear"],
+                            ", ".join(dominant_emotion),
+                            0)
+
+            cur = conn.cursor()
+            cur.execute(sql, emotion_results)
+            row_id = cur.lastrowid
+            conn.commit()
+
+            end_time = perf_counter()
+            total_time = end_time - start_time
+            try:
+                file_logger.info('Paragraph Id: %i, Paragraph Length: %i, Execution Time: %f', row_id, len(paragraph), total_time)
+            except Error as e:
+                file_logger.error(row_id, e)
+
+            update_sql = f'''
+            UPDATE {book_name}_table
+            SET log_runtime = ?
+            WHERE id = ?
+            '''
+
+            cur.execute(update_sql, (total_time, row_id))
+        conn.close()
 
 @flow
 def main(book_name):
-    file_handler = logging.FileHandler(f'logs/{book_name}.log')
-    file_logger.addHandler(file_handler)
-
-    create_table(book_name)
+    table_exists = create_table(book_name)
     paragraph_data = create_data(book_name)
-    insert_data(paragraph_data, book_name)
+    insert_data(table_exists, paragraph_data, book_name)
 
 if __name__ == '__main__':
     main(sys.argv[1])
