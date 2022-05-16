@@ -1,9 +1,9 @@
-__pychache__/
-.vscode/
-bin/
-emotion-analysis/
-lib/
+__pychache__
+.vscode
+bin
+emotion-analysis
+lib
 lib/64
-logs/
-venv/
+logs
+venv
 pyvenv.cfg
