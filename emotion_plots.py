@@ -1,40 +1,36 @@
-import sys
 import sqlite3
-
-#import numpy as np
+import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
+import sys
 
+conn = sqlite3.connect("/mnt/c/sqlite/db/emotions.db")
 
-def plotEmotions(table_name):
-    conn = sqlite3.connect('emotions.db')
-    c = conn.cursor()
-    wordUsed = 'Python Sentiment'
-    paragraph = f"SELECT id FROM {table_name}"
-    happy = f"SELECT Happy FROM {table_name}"
+def main(book_name):
+    sql = f"""SELECT id, happy, angry, surprise, sad, fear FROM {book_name}_table"""
+    book_title = book_name.replace("_", " ").title()
+    read_data = pd.read_sql(sql, conn)
+    def sliding_window(elements, window_size):
+        windowed_data = []
+        if len(elements) <= window_size:
+            return elements
+        for i in range(len(elements) - window_size + 1):
+            windowed_data.append(elements[i:i+window_size].mean())
+        return windowed_data
 
-    print(paragraph, happy)
-    graphArray = []
+    data = {
+        'sad': sliding_window(read_data.sad, 200),
+        'happy': sliding_window(read_data.happy, 200),
+        'surprise': sliding_window(read_data.surprise, 200),
+        'angry': sliding_window(read_data.angry, 200),
+        'fear': sliding_window(read_data.fear, 200)
+    }
 
-    okay = c.execute(happy)
-    print(okay)
-
-    #for row in c.execute(sql, [(wordUsed)]):
-    #    startingInfo = str(row).replace(')','').replace('(','').replace('u\'','').replace("'","")
-    #    splitInfo = startingInfo.split(',')
-    #    graphArrayAppend = splitInfo[2]+','+splitInfo[4]
-    #    graphArray.append(graphArrayAppend)
-
-    #datestamp, value = np.loadtxt(graphArray,delimiter=',', unpack=True,
-    #                            converters={ 0: mdates.strpdate2num(' %Y-%m-%d %H:%M:%S')})
-
-    fig = plt.figure()
-
-    rect = fig.patch
-
-    ax1 = fig.add_subplot(1,1,1,)
-    #plt.plot_date(x=paragraph, y=happy, fmt='b-', label = 'value', linewidth=2)
-    #plt.show()
+    #fig, ax = plt.subplots()
+    plt.plot(range(1, len(data['sad'])+1), data.sad, labels = data.keys())
+    plt.legend(loc='upper left')
+    plt.title(book_title)
+    plt.savefig(f"{book_name}_chart.png")
 
 if __name__ == '__main__':
-    plotEmotions(sys.argv[1])
+    main(sys.argv[1])

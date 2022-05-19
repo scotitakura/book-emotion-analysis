@@ -10,7 +10,6 @@ database = "/mnt/c/sqlite/db/emotions.db"
 file_logger = logging.getLogger(__name__)
 file_logger.setLevel(logging.INFO)
 
-@task
 def create_table(book_name):
     """
     Connects to database and then creates a table if one doesn't exist for a specific book.
@@ -51,7 +50,6 @@ def create_table(book_name):
     else:
         print("Error! Cannot create the database connection!")
 
-@task
 def create_data(book_name):
     """
     Function that parses a text file into paragraphs.
