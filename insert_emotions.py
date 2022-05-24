@@ -3,17 +3,14 @@ import sqlite3
 import logging
 from sqlite3 import Error
 from time import perf_counter
-from transformers import RobertaTokenizerFast, TFRobertaForSequenceClassification, pipeline
+from nrclex import NRCLex
 from prefect import flow, task
 
 database = "/mnt/c/sqlite/db/emotions.db"
 file_logger = logging.getLogger(__name__)
 file_logger.setLevel(logging.INFO)
-tokenizer = RobertaTokenizerFast.from_pretrained("arpanghoshal/EmoRoBERTa")
-model = TFRobertaForSequenceClassification.from_pretrained("arpanghoshal/EmoRoBERTa")
-emotion = pipeline('sentiment-analysis', 
-                    model='arpanghoshal/EmoRoBERTa')
 
+@task(name="Create a sqlite3 table in emotions.db")
 def create_table(book_name):
     """
     Connects to database and then creates a table if one doesn't exist for a specific book.
@@ -29,12 +26,16 @@ def create_table(book_name):
                                 id integer PRIMARY KEY,
                                 paragraph VARCHAR(3000),
                                 paragraph_length int,
-                                happy float,
-                                angry float,
-                                surprise float,
-                                sad float,
-                                fear float,
-                                dominant_emotion VARCHAR(50),
+                                fear int,
+                                anger int,
+                                anticipation int,
+                                trust int,
+                                surprise int,
+                                positive int,
+                                negative int,
+                                sadness int,
+                                disgust int,
+                                joy int,
                                 log_runtime float
                                 ); """
 
@@ -54,6 +55,7 @@ def create_table(book_name):
     else:
         print("Error! Cannot create the database connection!")
 
+@task(name="Parse book text into array of paragraphs")
 def create_data(book_name):
     """
     Function that parses a text file into paragraphs.
@@ -79,7 +81,7 @@ def create_data(book_name):
 
     return paragraphs
 
-@task
+@task(name="Get emotion score and write it to database")
 def insert_data(table_exists, paragraphs, book_name):
     """
     Insert new values into the weather_table.
@@ -97,8 +99,8 @@ def insert_data(table_exists, paragraphs, book_name):
         file_logger.addHandler(file_handler)
 
         sql = f'''
-            INSERT INTO {book_name}_table (paragraph, paragraph_length, happy, angry, surprise, sad, fear, dominant_emotion, log_runtime)
-            VALUES(?,?,?,?,?,?,?,?,?)
+            INSERT INTO {book_name}_table (paragraph, paragraph_length, fear, anger, anticipation, trust, surprise, positive, negative, sadness, disgust, joy, log_runtime)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
             '''
 
         conn = None
@@ -106,28 +108,32 @@ def insert_data(table_exists, paragraphs, book_name):
             conn = sqlite3.connect(database)
         except Error as e:
             print(e)
+        
+        emotion_keys = ["fear", "anger", "anticipation", "trust", "surprise", "positive", "negative", "sadness", "disgust", "joy"]
 
         for paragraph in paragraphs:
             start_time = perf_counter()
-            print(paragraph)
-            #paragraphs_to_emotions = te.get_emotion(paragraph)
-            paragraphs_to_emotions = {"Happy": 0, "Angry": 0, "Surprise": 0, "Sad": 0, "Fear": 0}
-            dominant_emotion = ""
-            print(emotion(paragraph))
-            for val in paragraphs_to_emotions.values():
-                if val >= 0.5:
-                    dominant_emotion = [k for k, v in paragraphs_to_emotions.items() if v == val and val >= 0.5]
-
+            text_object = NRCLex(paragraph)
+            emotion_scores = text_object.raw_emotion_scores
+            
+            for key in emotion_keys:
+                if key not in emotion_scores.keys():
+                    emotion_scores[key] = 0
+                    
             emotion_results = (paragraph,
                             len(paragraph),
-                            paragraphs_to_emotions["Happy"],
-                            paragraphs_to_emotions["Angry"],
-                            paragraphs_to_emotions["Surprise"],
-                            paragraphs_to_emotions["Sad"],
-                            paragraphs_to_emotions["Fear"],
-                            ", ".join(dominant_emotion),
+                            emotion_scores["fear"],
+                            emotion_scores["anger"],
+                            emotion_scores["anticipation"],
+                            emotion_scores["trust"],
+                            emotion_scores["surprise"],
+                            emotion_scores["positive"],
+                            emotion_scores["negative"],
+                            emotion_scores["sadness"],
+                            emotion_scores["disgust"],
+                            emotion_scores["joy"],
                             0)
-
+                            
             cur = conn.cursor()
             cur.execute(sql, emotion_results)
             row_id = cur.lastrowid
@@ -141,15 +147,16 @@ def insert_data(table_exists, paragraphs, book_name):
                 file_logger.error(row_id, e)
 
             update_sql = f'''
-            UPDATE {book_name}_table
-            SET log_runtime = ?
-            WHERE id = ?
-            '''
+                        UPDATE {book_name}_table
+                        SET log_runtime = ?
+                        WHERE id = ?
+                        '''
 
             cur.execute(update_sql, (total_time, row_id))
+
         conn.close()
 
-@flow
+@flow(name = "Emotion Analysis Pipeline")
 def main(book_name):
     table_exists = create_table(book_name)
     paragraph_data = create_data(book_name)
