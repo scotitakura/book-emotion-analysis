@@ -1,9 +1,4 @@
-__pycache__
-.vscode
-bin
-emotion-analysis
-lib
-lib/64
+
 logs
-venv
+virtualenv_project
 pyvenv.cfg
