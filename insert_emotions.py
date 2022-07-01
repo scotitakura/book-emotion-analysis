@@ -6,13 +6,15 @@ from sqlite3 import Error
 from time import perf_counter
 from datetime import timedelta
 from nrclex import NRCLex
-from prefect import task, Flow
-from prefect.schedules import IntervalSchedule
+from prefect import flow, task
+from prefect.deployments import DeploymentSpec
+from prefect.orion.schemas.schedules import IntervalSchedule
 
 schedule = IntervalSchedule(interval=timedelta(minutes=5))
 database = "/mnt/c/sqlite/db/emotions.db"
 file_logger = logging.getLogger(__name__)
 file_logger.setLevel(logging.INFO)
+
 
 @task(name="Create a sqlite3 table in emotions.db")
 def create_table(book_name):
@@ -26,7 +28,7 @@ def create_table(book_name):
     -------
     None
     """
-
+    print("create table running")
     sql_create_table = f""" CREATE TABLE IF NOT EXISTS {book_name}_table (
                                 id integer PRIMARY KEY,
                                 paragraph VARCHAR(3000),
@@ -99,6 +101,7 @@ def insert_data(table_exists, paragraphs, book_name):
     -------
     None
     """
+    print("Creating table")
     if table_exists:
         file_handler = logging.FileHandler(f'logs/{book_name}.log')
         file_logger.addHandler(file_handler)
@@ -156,39 +159,21 @@ def insert_data(table_exists, paragraphs, book_name):
                         SET log_runtime = ?
                         WHERE id = ?
                         '''
-                        
+                    
             cur.execute(update_sql, (total_time, row_id))
-
         conn.close()
 
-# @flow(name = "Emotion Analysis Pipeline", schedule=schedule)
-# def main():
-
-#     if len(os.listdir(f'./unproccessed_text_files')) > 0:
-#         book_name = os.listdir(f'./unproccessed_text_files')[0][:-4]
-
-#         table_exists = create_table(book_name)
-#         paragraph_data = create_data(book_name)
-#         insert_data(table_exists, paragraph_data, book_name)
-
-#         os.replace(f'./unproccessed_text_files/{book_name}', f'./text_files/{book_name}')
-#     elif len(os.listdir(f'./unproccessed_text_files')) == 0:
-#         print("No text files left to proccess!")
-
-
+@flow(name = "Emotion Analysis Pipeline")
 def main_flow():
-    with Flow(name = "Emotion Analysis Pipeline", schedule=schedule) as flow:
-        if len(os.listdir(f'./unproccessed_text_files')) > 0:
-            book_name = os.listdir(f'./unproccessed_text_files')[0][:-4]
-            
-            table_exists = create_table(book_name)
-            paragraph_data = create_data(book_name)
-            insert_data(table_exists, paragraph_data, book_name)
-
-            os.replace(f'./unproccessed_text_files/{book_name}.txt', f'./text_files/{book_name}.txt')
-        elif len(os.listdir(f'./unproccessed_text_files')) == 0:
-            print("No text files left to proccess!")
-    return flow
+    if len(os.listdir(f'./unproccessed_text_files')) > 0:
+        book_name = os.listdir(f'./unproccessed_text_files')[0][:-4]
+        print(book_name)
+        table_exists = create_table(book_name)
+        paragraph_data = create_data(book_name)
+        insert_data(table_exists, paragraph_data, book_name)
+        os.replace(f'./unproccessed_text_files/{book_name}.txt', f'./text_files/{book_name}.txt')
+    elif len(os.listdir(f'./unproccessed_text_files')) == 0:
+        print("No text files left to proccess!")
 
 if __name__ == "__main__":
     main_flow()
