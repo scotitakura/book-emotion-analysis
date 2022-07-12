@@ -11,7 +11,7 @@ from prefect.deployments import DeploymentSpec
 from prefect.orion.schemas.schedules import IntervalSchedule
 
 import mysql.connector
-from mysql.connector.constrants import ClientFlag
+from mysql.connector.constants import ClientFlag
 
 config = {
     'user': 'root',
