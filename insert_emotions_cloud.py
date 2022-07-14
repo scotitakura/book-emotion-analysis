@@ -38,7 +38,7 @@ def create_table(book_name):
     None
     """
     
-    sql_create_table = f""" CREATE TABLE [IF NOT EXISTS] {book_name}_table (
+    sql_create_table = f""" CREATE TABLE IF NOT EXISTS {book_name}_table (
                                 id integer PRIMARY KEY,
                                 paragraph VARCHAR(3000),
                                 paragraph_length int,
