@@ -55,7 +55,7 @@ def create_table(book_name):
                                 log_runtime float
                                 ); """
     print('Before connected')
-    cnxn = mysql.connector.connect(**config)
+    cnxn = mysql.connector.connect(config)
     if cnxn.is_connected():
             print('Connected to MySQL database')
     if cnxn is not None:
