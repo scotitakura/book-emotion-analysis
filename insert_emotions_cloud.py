@@ -148,7 +148,7 @@ def insert_data(table_exists, paragraphs, book_name):
             print(emotion_results)
 
             
-            cursor.executemany(sql, emotion_results)
+            cursor.execute(sql, emotion_results)
             row_id = cursor.lastrowid
             cnxn.commit()
 
