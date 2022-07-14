@@ -146,6 +146,7 @@ def insert_data(table_exists, paragraphs, book_name):
                             0)
                                     
             cnxn = mysql.connector.connect(**config)
+            cursor = cnxn.cursor()
             cursor.executemany(sql, emotion_results)
             row_id = cursor.lastrowid
             cnxn.commit()
@@ -175,7 +176,7 @@ def main_flow():
         table_exists = create_table(book_name)
         paragraph_data = create_data(book_name)
         insert_data(table_exists, paragraph_data, book_name)
-        os.replace(f'./unproccessed_text_files/{book_name}.txt', f'./text_files/{book_name}.txt')
+        
     elif len(os.listdir(f'./unproccessed_text_files')) == 0:
         print("No text files left to proccess!")
 
