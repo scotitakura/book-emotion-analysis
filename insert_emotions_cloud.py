@@ -55,11 +55,11 @@ def create_table(book_name):
                                 log_runtime float
                                 ); """
     print('Before connected')
-    
-    cnxn = mysql.connector.connect(user: 'root',
-    password: 'emotion-pass',
-    host: '35.247.29.230',
-    database: 'emotions')
+
+    cnxn = mysql.connector.connect(user = 'root',
+    password = 'emotion-pass',
+    host = '35.247.29.230',
+    database = 'emotions')
 
     if cnxn.is_connected():
             print('Connected to MySQL database')
