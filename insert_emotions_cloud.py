@@ -140,11 +140,10 @@ def insert_data(table_exists, paragraphs, book_name):
                             emotion_scores["joy"],
                             0)
 
-            if cnxn is None:
-                cnxn = mysql.connector.connect(user = 'root',
-                    password = 'emotion-pass',
-                    host = '35.192.147.157',
-                    database = 'emotions')
+            cnxn = mysql.connector.connect(user = 'root',
+                password = 'emotion-pass',
+                host = '35.192.147.157',
+                database = 'emotions')
             cursor = cnxn.cursor()
             cursor.executemany(sql, emotion_results)
             row_id = cursor.lastrowid
