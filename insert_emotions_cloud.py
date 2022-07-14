@@ -11,23 +11,13 @@ from prefect.deployments import DeploymentSpec
 from prefect.orion.schemas.schedules import IntervalSchedule
 import nltk
 nltk.download('punkt')
-
 import mysql.connector
-from mysql.connector.constants import ClientFlag
-
-config = {
-    'user': 'root',
-    'password': 'emotion-pass',
-    'host': '35.247.29.230',
-    #'client_flags': [ClientFlag.SSL]
-    'database': 'emotions'
-}
 
 schedule = IntervalSchedule(interval=timedelta(minutes=5))
 file_logger = logging.getLogger(__name__)
 file_logger.setLevel(logging.INFO)
 
-@task(name="Create a sqlite3 table in emotions.db")
+@task(name="Create a mysql table in google cloud")
 def create_table(book_name):
     """
     Connects to database and then creates a table if one doesn't exist for a specific book.
@@ -56,7 +46,6 @@ def create_table(book_name):
                                 joy int,
                                 log_runtime float
                                 ); """
-    print('Before connected')
 
     cnxn = mysql.connector.connect(user = 'root',
     password = 'emotion-pass',
@@ -150,8 +139,12 @@ def insert_data(table_exists, paragraphs, book_name):
                             emotion_scores["disgust"],
                             emotion_scores["joy"],
                             0)
-                                    
-            cnxn = mysql.connector.connect(**config)
+
+            if cnxn is None:
+                cnxn = mysql.connector.connect(user = 'root',
+                    password = 'emotion-pass',
+                    host = '35.192.147.157',
+                    database = 'emotions')
             cursor = cnxn.cursor()
             cursor.executemany(sql, emotion_results)
             row_id = cursor.lastrowid
