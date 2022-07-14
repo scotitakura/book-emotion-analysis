@@ -31,7 +31,6 @@ def create_table(book_name):
     """
     
     sql_create_table = f""" CREATE TABLE IF NOT EXISTS {book_name}_table (
-                                id integer PRIMARY KEY,
                                 paragraph VARCHAR(3000),
                                 paragraph_length int,
                                 fear int,
@@ -112,8 +111,8 @@ def insert_data(table_exists, paragraphs, book_name):
         file_logger.addHandler(file_handler)
 
         sql = f'''
-            INSERT INTO {book_name}_table (id, paragraph, paragraph_length, fear, anger, anticipation, trust, surprise, positive, negative, sadness, disgust, joy, log_runtime)
-            VALUES (%s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            INSERT INTO {book_name}_table (paragraph, paragraph_length, fear, anger, anticipation, trust, surprise, positive, negative, sadness, disgust, joy, log_runtime)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             '''
         
         emotion_keys = ["fear", "anger", "anticipation", "trust", "surprise", "positive", "negative", "sadness", "disgust", "joy"]
@@ -134,8 +133,7 @@ def insert_data(table_exists, paragraphs, book_name):
                 if key not in emotion_scores.keys():
                     emotion_scores[key] = 0
 
-            emotion_results = (id_count,
-                            paragraph,
+            emotion_results = (paragraph,
                             len(paragraph),
                             emotion_scores["fear"],
                             emotion_scores["anger"],
