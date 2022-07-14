@@ -16,7 +16,7 @@ from mysql.connector.constants import ClientFlag
 config = {
     'user': 'root',
     'password': 'emotion-pass',
-    'host': '34.135.29.110',
+    'host': '35.192.147.157',
     'client_flags': [ClientFlag.SSL],
     'ssl_ca': 'ssl/server-ca.pem',
     'ssl_cert': 'ssl/client-cert.pem',
@@ -176,7 +176,7 @@ def main_flow():
         table_exists = create_table(book_name)
         paragraph_data = create_data(book_name)
         insert_data(table_exists, paragraph_data, book_name)
-        
+        #os.replace(f'./unproccessed_text_files/{book_name}.txt', f'./text_files/{book_name}.txt')
     elif len(os.listdir(f'./unproccessed_text_files')) == 0:
         print("No text files left to proccess!")
 
