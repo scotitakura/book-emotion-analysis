@@ -117,6 +117,12 @@ def insert_data(table_exists, paragraphs, book_name):
         
         emotion_keys = ["fear", "anger", "anticipation", "trust", "surprise", "positive", "negative", "sadness", "disgust", "joy"]
 
+        cnxn = mysql.connector.connect(user = 'root',
+                password = 'emotion-pass',
+                host = '35.192.147.157',
+                database = 'emotions')
+        cursor = cnxn.cursor()
+
         for paragraph in paragraphs:
             start_time = perf_counter()
             text_object = NRCLex(paragraph)
@@ -139,12 +145,9 @@ def insert_data(table_exists, paragraphs, book_name):
                             emotion_scores["disgust"],
                             emotion_scores["joy"],
                             0)
+            print(emotion_results)
 
-            cnxn = mysql.connector.connect(user = 'root',
-                password = 'emotion-pass',
-                host = '35.192.147.157',
-                database = 'emotions')
-            cursor = cnxn.cursor()
+            
             cursor.executemany(sql, emotion_results)
             row_id = cursor.lastrowid
             cnxn.commit()
