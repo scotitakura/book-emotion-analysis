@@ -17,10 +17,7 @@ config = {
     'user': 'root',
     'password': 'emotion-pass',
     'host': '35.192.147.157',
-    'client_flags': [ClientFlag.SSL],
-    'ssl_ca': 'ssl/server-ca.pem',
-    'ssl_cert': 'ssl/client-cert.pem',
-    'ssl_key': 'ssl/client-key.pem'
+    'client_flags': [ClientFlag.SSL]
 }
 
 schedule = IntervalSchedule(interval=timedelta(minutes=5))
@@ -58,7 +55,8 @@ def create_table(book_name):
                                 ); """
 
     cnxn = mysql.connector.connect(**config)
-    
+    if cnxn.is_connected():
+            print('Connected to MySQL database')
     if cnxn is not None:
         try:
             c = cnxn.cursor()
