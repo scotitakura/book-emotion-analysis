@@ -58,7 +58,7 @@ def create_table(book_name):
 
     cnxn = mysql.connector.connect(user = 'root',
     password = 'emotion-pass',
-    host = '35.247.29.230',
+    host = '35.192.147.157',
     database = 'emotions')
 
     if cnxn.is_connected():
