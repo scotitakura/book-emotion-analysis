@@ -16,8 +16,7 @@ from mysql.connector.constants import ClientFlag
 config = {
     'user': 'root',
     'password': 'emotion-pass',
-    'host': '35.192.147.157',
-    'database': 'emotions',
+    'host': '35.247.29.230',
     'client_flags': [ClientFlag.SSL]
 }
 
