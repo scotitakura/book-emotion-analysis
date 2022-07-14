@@ -17,6 +17,7 @@ config = {
     'user': 'root',
     'password': 'emotion-pass',
     'host': '35.192.147.157',
+    'database': 'emotions',
     'client_flags': [ClientFlag.SSL]
 }
 
