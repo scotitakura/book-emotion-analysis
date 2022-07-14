@@ -9,6 +9,8 @@ from nrclex import NRCLex
 from prefect import flow, task
 from prefect.deployments import DeploymentSpec
 from prefect.orion.schemas.schedules import IntervalSchedule
+import nltk
+nltk.download('punkt')
 
 import mysql.connector
 from mysql.connector.constants import ClientFlag
