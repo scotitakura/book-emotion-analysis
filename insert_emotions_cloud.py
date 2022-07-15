@@ -1,5 +1,3 @@
-import sys
-import sqlite3
 import logging
 import os
 from sqlite3 import Error
@@ -49,14 +47,13 @@ def create_table(book_name):
                                 ); """
 
     cnxn = mysql.connector.connect(user = 'root',
-    password = 'emotion-pass',
-    host = '35.192.147.157',
-    database = 'emotions')
-
-    if cnxn.is_connected():
-            print('Connected to MySQL database')
+        password = 'emotion-pass',
+        host = '35.192.147.157',
+        database = 'emotions')
+        
     if cnxn is not None:
         try:
+            print('Connected to MySQL database')
             c = cnxn.cursor()
             c.execute(sql_create_table)
             cnxn.commit()
@@ -78,35 +75,30 @@ def create_data(book_name):
     ------
     A list of paragraphs.
     """
+
     paragraphs = []
-    
     with open(f'./unproccessed_text_files/{book_name}.txt', 'r', encoding="utf8") as f:
         book_text = f.read()
-
     tests = book_text.split("\n\n")
-
     for paragraph in tests:
         paragraphs.append(paragraph.replace("\n", " "))
-
     print("Number of paragraphs in this book: ", len(paragraphs))
-
     return paragraphs
 
 @task(name="Get emotion score and write it to database")
 def insert_data(table_exists, paragraphs, book_name):
     """
-    Insert new values into the weather_table.
+    Insert new values into the book's table.
     Parameters
     ----------
-    conn : conn
-    project : string, string, datetime, float
-        weather_table values as city_name, state_name, datetime, and temperature
+    cnxn : cnxn
+    project : int, string, int, int, int, int, int, int, int, int, int, int, int, float
+        weather_table values as paragraph number, paragraph, paragraph length, fear, anger, anticipation, trust, surprise, positive, negative, sadness, disgust, joy, log runtime
     Returns
     -------
     None
     """
 
-    print("Creating table")
     if table_exists:
         paragraph_num = 0
         file_handler = logging.FileHandler(f'logs/{book_name}.log')
@@ -149,9 +141,7 @@ def insert_data(table_exists, paragraphs, book_name):
                             emotion_scores["disgust"],
                             emotion_scores["joy"],
                             0)
-            print(emotion_results)
 
-            
             cursor.execute(sql, emotion_results)
             cnxn.commit()
 
@@ -176,11 +166,12 @@ def insert_data(table_exists, paragraphs, book_name):
 def main_flow():
     if len(os.listdir(f'./unproccessed_text_files')) > 0:
         book_name = os.listdir(f'./unproccessed_text_files')[0][:-4]
-        print(book_name)
+        print("Proccessing ", book_name)
         table_exists = create_table(book_name)
         paragraph_data = create_data(book_name)
         insert_data(table_exists, paragraph_data, book_name)
-        #os.replace(f'./unproccessed_text_files/{book_name}.txt', f'./text_files/{book_name}.txt')
+        os.replace(f'./unproccessed_text_files/{book_name}.txt', f'./text_files/{book_name}.txt')
+
     elif len(os.listdir(f'./unproccessed_text_files')) == 0:
         print("No text files left to proccess!")
 
