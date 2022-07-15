@@ -168,7 +168,7 @@ def insert_data(table_exists, paragraphs, book_name):
             
             cursor.execute(update_sql, total_time)
             cnxn.commit()
-        cnxn.close.close()
+        cnxn.close()
 
 @flow(name = "Emotion Analysis Pipeline")
 def main_flow():
