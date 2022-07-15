@@ -162,7 +162,7 @@ def insert_data(table_exists, paragraphs, book_name):
 
             update_sql = f'''
                         UPDATE {book_name}_table
-                        SET log_runtime = %s
+                        SET log_runtime = {total_time}
                         WHERE paragraph_num = {paragraph_num}
                         '''
             
