@@ -31,7 +31,6 @@ def create_table(book_name):
     """
     
     sql_create_table = f""" CREATE TABLE IF NOT EXISTS {book_name}_table (
-                                paragraph_num int,
                                 paragraph VARCHAR(3000),
                                 paragraph_length int,
                                 fear int,
@@ -152,23 +151,22 @@ def insert_data(table_exists, paragraphs, book_name):
 
             
             cursor.execute(sql, emotion_results)
-            row_id = cursor.lastrowid
             cnxn.commit()
 
             end_time = perf_counter()
             total_time = end_time - start_time
             try:
-                file_logger.info('Paragraph Id: %i, Paragraph Length: %i, Execution Time: %f', row_id, len(paragraph), total_time)
+                file_logger.info('Paragraph Id: %i, Paragraph Length: %i, Execution Time: %f', paragraph_num, len(paragraph), total_time)
             except Error as e:
-                file_logger.error(row_id, e)
+                file_logger.error(paragraph_num, e)
 
             update_sql = f'''
                         UPDATE {book_name}_table
                         SET log_runtime = %s
-                        WHERE id = {paragraph_num}
+                        WHERE paragraph_num = {paragraph_num}
                         '''
             
-            cursor.execute(update_sql, (total_time, row_id))
+            cursor.execute(update_sql, total_time)
             cnxn.commit()
         cnxn.close.close()
 
