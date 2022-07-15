@@ -31,6 +31,7 @@ def create_table(book_name):
     """
     
     sql_create_table = f""" CREATE TABLE IF NOT EXISTS {book_name}_table (
+                                paragraph_num int,
                                 paragraph VARCHAR(3000),
                                 paragraph_length int,
                                 fear int,
@@ -106,13 +107,13 @@ def insert_data(table_exists, paragraphs, book_name):
 
     print("Creating table")
     if table_exists:
-        id_count = 0
+        paragraph_num = 0
         file_handler = logging.FileHandler(f'logs/{book_name}.log')
         file_logger.addHandler(file_handler)
 
         sql = f'''
-            INSERT INTO {book_name}_table (paragraph, paragraph_length, fear, anger, anticipation, trust, surprise, positive, negative, sadness, disgust, joy, log_runtime)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            INSERT INTO {book_name}_table (paragraph_num, paragraph, paragraph_length, fear, anger, anticipation, trust, surprise, positive, negative, sadness, disgust, joy, log_runtime)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             '''
         
         emotion_keys = ["fear", "anger", "anticipation", "trust", "surprise", "positive", "negative", "sadness", "disgust", "joy"]
@@ -127,13 +128,14 @@ def insert_data(table_exists, paragraphs, book_name):
             start_time = perf_counter()
             text_object = NRCLex(paragraph)
             emotion_scores = text_object.raw_emotion_scores
-            id_count += 1
+            paragraph_num += 1
             
             for key in emotion_keys:
                 if key not in emotion_scores.keys():
                     emotion_scores[key] = 0
 
-            emotion_results = (paragraph,
+            emotion_results = (paragraph_num,
+                            paragraph,
                             len(paragraph),
                             emotion_scores["fear"],
                             emotion_scores["anger"],
@@ -163,7 +165,7 @@ def insert_data(table_exists, paragraphs, book_name):
             update_sql = f'''
                         UPDATE {book_name}_table
                         SET log_runtime = %s
-                        WHERE id = %s
+                        WHERE id = {paragraph_num}
                         '''
             
             cursor.execute(update_sql, (total_time, row_id))
