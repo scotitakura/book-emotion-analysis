@@ -162,8 +162,8 @@ def insert_data(table_exists, paragraphs, book_name):
 
             update_sql = f'''
                         UPDATE {book_name}_table
-                        SET log_runtime = ?
-                        WHERE id = ?
+                        SET log_runtime = %s
+                        WHERE id = %s
                         '''
             
             cursor.execute(update_sql, (total_time, row_id))
