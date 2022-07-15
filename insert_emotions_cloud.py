@@ -31,7 +31,7 @@ def create_table(book_name):
     """
     
     sql_create_table = f""" CREATE TABLE IF NOT EXISTS {book_name}_table (
-                                paragraph_num int,
+                                paragraph_num int NOT NULL AUTO_INCREMENT,
                                 paragraph VARCHAR(3000),
                                 paragraph_length int,
                                 fear int,
@@ -44,7 +44,8 @@ def create_table(book_name):
                                 sadness int,
                                 disgust int,
                                 joy int,
-                                log_runtime float
+                                log_runtime float,
+                                PRIMARY KEY (`paragraph_num`)
                                 ); """
 
     cnxn = mysql.connector.connect(user = 'root',
