@@ -7,7 +7,6 @@ from time import perf_counter
 from datetime import timedelta
 from nrclex import NRCLex
 from prefect import flow, task
-from prefect.deployments import DeploymentSpec
 from prefect.orion.schemas.schedules import IntervalSchedule
 import nltk
 nltk.download('punkt')
@@ -85,14 +84,6 @@ def create_data(book_num):
 
     print("Number of paragraphs in this book: ", len(paragraphs))
     return paragraphs
-    
-    #with open(f'./unproccessed_text_files/{book_name}.txt', 'r', encoding="utf8") as f:
-    #    book_text = f.read()
-    #tests = book_text.split("\n\n")
-    #for paragraph in tests:
-        #paragraphs.append(paragraph.replace("\n", " "))
-    #print("Number of paragraphs in this book: ", len(paragraphs))
-    #return paragraphs
 
 @task(name="Get emotion score and write it to database")
 def insert_data(table_exists, paragraphs, book_name):
@@ -173,16 +164,11 @@ def insert_data(table_exists, paragraphs, book_name):
 
 @flow(name = "Emotion Analysis Pipeline")
 def main_flow(book_name, book_num):
-    if len(os.listdir(f'./unproccessed_text_files')) > 0:
-        #book_name = os.listdir(f'./unproccessed_text_files')[0][:-4]
-        print("Proccessing ", book_name)
-        #table_exists = create_table(book_name)
-        paragraph_data = create_data(book_num)
-        #insert_data(table_exists, paragraph_data, book_name)
-        #os.replace(f'./unproccessed_text_files/{book_name}.txt', f'./text_files/{book_name}.txt')
 
-    elif len(os.listdir(f'./unproccessed_text_files')) == 0:
-        print("No text files left to proccess!")
+    print("Proccessing ", book_name)
+    table_exists = create_table(book_name)
+    paragraph_data = create_data(book_num)
+    insert_data(table_exists, paragraph_data, book_name)
 
 if __name__ == "__main__":
-    main_flow(sys.argv[0], sys.argv[1])
+    main_flow(sys.argv[1], sys.argv[2])
