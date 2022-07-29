@@ -1,6 +1,8 @@
+import sys
 import logging
 import os
 from sqlite3 import Error
+import gutenbergpy.textget
 from time import perf_counter
 from datetime import timedelta
 from nrclex import NRCLex
@@ -30,7 +32,7 @@ def create_table(book_name):
     
     sql_create_table = f""" CREATE TABLE IF NOT EXISTS {book_name}_table (
                                 paragraph_num int NOT NULL AUTO_INCREMENT,
-                                paragraph VARCHAR(3000),
+                                paragraph VARCHAR(10000),
                                 paragraph_length int,
                                 fear int,
                                 anger int,
@@ -64,7 +66,7 @@ def create_table(book_name):
         print("Error! Cannot Create the database connection!")
 
 @task(name="Parse book text into array of paragraphs")
-def create_data(book_name):
+def create_data(book_num):
     """
     Function that parses a text file into paragraphs.
     Parameters
@@ -75,15 +77,22 @@ def create_data(book_name):
     ------
     A list of paragraphs.
     """
-
+    book_text = gutenbergpy.textget.strip_headers(gutenbergpy.textget.get_text_by_id(book_num))
     paragraphs = []
-    with open(f'./unproccessed_text_files/{book_name}.txt', 'r', encoding="utf8") as f:
-        book_text = f.read()
-    tests = book_text.split("\n\n")
+    tests = book_text.decode("utf-8").split("\n\n")
     for paragraph in tests:
         paragraphs.append(paragraph.replace("\n", " "))
+
     print("Number of paragraphs in this book: ", len(paragraphs))
     return paragraphs
+    
+    #with open(f'./unproccessed_text_files/{book_name}.txt', 'r', encoding="utf8") as f:
+    #    book_text = f.read()
+    #tests = book_text.split("\n\n")
+    #for paragraph in tests:
+        #paragraphs.append(paragraph.replace("\n", " "))
+    #print("Number of paragraphs in this book: ", len(paragraphs))
+    #return paragraphs
 
 @task(name="Get emotion score and write it to database")
 def insert_data(table_exists, paragraphs, book_name):
@@ -93,7 +102,7 @@ def insert_data(table_exists, paragraphs, book_name):
     ----------
     cnxn : cnxn
     project : int, string, int, int, int, int, int, int, int, int, int, int, int, float
-        weather_table values as paragraph number, paragraph, paragraph length, fear, anger, anticipation, trust, surprise, positive, negative, sadness, disgust, joy, log runtime
+        emotion_table values as paragraph number, paragraph, paragraph length, fear, anger, anticipation, trust, surprise, positive, negative, sadness, disgust, joy, log runtime
     Returns
     -------
     None
@@ -163,17 +172,17 @@ def insert_data(table_exists, paragraphs, book_name):
         cnxn.close()
 
 @flow(name = "Emotion Analysis Pipeline")
-def main_flow():
+def main_flow(book_name, book_num):
     if len(os.listdir(f'./unproccessed_text_files')) > 0:
-        book_name = os.listdir(f'./unproccessed_text_files')[0][:-4]
+        #book_name = os.listdir(f'./unproccessed_text_files')[0][:-4]
         print("Proccessing ", book_name)
-        table_exists = create_table(book_name)
-        paragraph_data = create_data(book_name)
-        insert_data(table_exists, paragraph_data, book_name)
-        os.replace(f'./unproccessed_text_files/{book_name}.txt', f'./text_files/{book_name}.txt')
+        #table_exists = create_table(book_name)
+        paragraph_data = create_data(book_num)
+        #insert_data(table_exists, paragraph_data, book_name)
+        #os.replace(f'./unproccessed_text_files/{book_name}.txt', f'./text_files/{book_name}.txt')
 
     elif len(os.listdir(f'./unproccessed_text_files')) == 0:
         print("No text files left to proccess!")
 
 if __name__ == "__main__":
-    main_flow()
+    main_flow(sys.argv[0], sys.argv[1])
