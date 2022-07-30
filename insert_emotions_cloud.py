@@ -158,7 +158,7 @@ def insert_data(table_exists, paragraphs, book_name):
                         WHERE paragraph_num = {paragraph_num}
                         '''
             
-            cursor.execute(update_sql, (total_time, paragraph_num))
+            cursor.execute(update_sql)
             cnxn.commit()
         cnxn.close()
 
