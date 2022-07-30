@@ -16,7 +16,7 @@ schedule = IntervalSchedule(interval=timedelta(minutes=5))
 file_logger = logging.getLogger(__name__)
 file_logger.setLevel(logging.INFO)
 
-@task(name="Create a mysql table in google cloud")
+@task(name="Create a mysql table in google cloud.")
 def create_table(book_name):
     """
     Connects to database and then creates a table if one doesn't exist for a specific book.
@@ -142,7 +142,7 @@ def insert_data(table_exists, paragraphs, book_name):
                             emotion_scores["joy"],
                             0)
 
-            cursor.execute(sql, emotion_results)
+            cursor.execute(sql, (emotion_results,))
             cnxn.commit()
 
             end_time = perf_counter()
@@ -158,7 +158,7 @@ def insert_data(table_exists, paragraphs, book_name):
                         WHERE paragraph_num = {paragraph_num}
                         '''
             
-            cursor.execute(update_sql, total_time)
+            cursor.execute(update_sql, (total_time,))
             cnxn.commit()
         cnxn.close()
 
