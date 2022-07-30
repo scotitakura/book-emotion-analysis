@@ -48,9 +48,9 @@ def create_table(book_name):
                                 ); """
 
     cnxn = mysql.connector.connect(user = 'root',
-        password = 'emotion-pass',
-        host = '35.192.147.157',
-        database = 'emotions')
+        password = 'root',
+        host = '34.67.29.181',
+        database = 'book-emotions')
         
     if cnxn is not None:
         try:
@@ -112,9 +112,9 @@ def insert_data(table_exists, paragraphs, book_name):
         emotion_keys = ["fear", "anger", "anticipation", "trust", "surprise", "positive", "negative", "sadness", "disgust", "joy"]
 
         cnxn = mysql.connector.connect(user = 'root',
-                password = 'emotion-pass',
-                host = '35.192.147.157',
-                database = 'emotions')
+                password = 'root',
+                host = '34.67.29.181',
+                database = 'book-emotions')
         cursor = cnxn.cursor()
 
         for paragraph in paragraphs:
@@ -164,11 +164,13 @@ def insert_data(table_exists, paragraphs, book_name):
 
 @flow(name = "Emotion Analysis Pipeline")
 def main_flow(book_name, book_num):
-
-    print("Proccessing ", book_name)
-    table_exists = create_table(book_name)
-    paragraph_data = create_data(book_num)
-    insert_data(table_exists, paragraph_data, book_name)
+    try:
+        print("Proccessing ", book_name)
+        table_exists = create_table(book_name)
+        paragraph_data = create_data(book_num)
+        insert_data(table_exists, paragraph_data, book_name)
+    except Error as e:
+        file_logger.error(e)
 
 if __name__ == "__main__":
     main_flow(sys.argv[1], sys.argv[2])
