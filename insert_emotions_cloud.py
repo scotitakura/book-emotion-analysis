@@ -142,7 +142,7 @@ def insert_data(table_exists, paragraphs, book_name):
                             emotion_scores["joy"],
                             0)
 
-            cursor.execute(sql, (emotion_results,))
+            cursor.execute(sql, emotion_results)
             cnxn.commit()
 
             end_time = perf_counter()
