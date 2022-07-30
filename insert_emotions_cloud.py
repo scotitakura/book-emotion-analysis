@@ -106,7 +106,7 @@ def insert_data(table_exists, paragraphs, book_name):
 
         sql = f'''
             INSERT INTO {book_name}_table (paragraph_num, paragraph, paragraph_length, fear, anger, anticipation, trust, surprise, positive, negative, sadness, disgust, joy, log_runtime)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             '''
         
         emotion_keys = ["fear", "anger", "anticipation", "trust", "surprise", "positive", "negative", "sadness", "disgust", "joy"]
